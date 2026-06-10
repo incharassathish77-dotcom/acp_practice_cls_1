@@ -42,6 +42,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Render dashboard values
   updateHUD();
   renderDashboard();
+  // Pre-draw skill tree so first visit loads instantly
+  initSkillTree();
 });
 
 // --- LOCAL STORAGE SYNC ---
@@ -78,8 +80,8 @@ function loadProfile() {
       state.completedMissions = []; // Reset daily missions
     }
   } else {
-    // Show onboarding modal
-    document.getElementById("onboardingModal").style.display = "flex";
+    // No saved profile — show onboarding modal
+    document.getElementById("onboardingModal").classList.add("active");
   }
 }
 
@@ -214,7 +216,7 @@ function initOnboarding() {
       state.unlockedNodes = [];
     }
     
-    document.getElementById("onboardingModal").style.display = "none";
+    document.getElementById("onboardingModal").classList.remove("active");
     saveProfile();
     renderDashboard();
     initSkillTree(); // Draw canvas
@@ -258,9 +260,18 @@ function initRouting() {
       } else if (target === "skilltree") {
         initSkillTree();
       } else if (target === "career") {
+        // Re-init cards to reflect current targetCareer
+        initCareerAdvisor();
         renderCareerAdvisor();
       } else if (target === "tools") {
         renderToolsExplorer();
+      } else if (target === "community") {
+        renderLeaderboard();
+      } else if (target === "settings") {
+        // Re-sync inputs when revisiting Settings
+        document.getElementById("settingsUsernameInput").value = state.username;
+        document.getElementById("settingsAvatarSelect").value = state.avatar;
+        document.getElementById("settingsTargetCareerSelect").value = state.targetCareer;
       }
     });
   });
@@ -1214,15 +1225,17 @@ function renderLeaderboard() {
     
     tr.innerHTML = `
       <td><strong>#${index + 1}</strong></td>
-      <td style="display:flex; gap:10px; align-items:center;">
-        <span>${item.avatar}</span>
-        <div>
-          <div style="font-weight:700;">${item.name}</div>
-          <div style="font-size:10px; color:var(--text-muted);">${item.title}</div>
+      <td>
+        <div style="display:flex; gap:10px; align-items:center;">
+          <span>${item.avatar}</span>
+          <div>
+            <div style="font-weight:700;">${item.name}</div>
+            <div style="font-size:10px; color:var(--text-muted);">${item.title}</div>
+          </div>
         </div>
       </td>
       <td>Lvl ${item.level}</td>
-      <td style="font-family:var(--font-mono); color:var(--color-primary);">${item.xp} XP</td>
+      <td style="font-family:var(--font-mono); color:var(--color-primary);">${Math.round(item.xp)} XP</td>
     `;
     tbody.appendChild(tr);
   });
