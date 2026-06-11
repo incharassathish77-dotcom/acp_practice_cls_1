@@ -17,8 +17,7 @@ cd acp_practice_cls_1
 npx http-server -p 8080
 
 # Then open:
-# http://localhost:8080
-```
+#https://aipoweredskilltreesimulator.vercel.app/
 
 No build step. No dependencies to install. Just open and play.
 
