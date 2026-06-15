@@ -1,0 +1,38 @@
+{
+  "name": "rpg-student-skill-tree-simulator",
+  "version": "1.0.0",
+  "description": "AI-Powered Student Skill Tree Simulator — RPG-style gamified learning platform",
+  "author": "incharassathish77",
+  "license": "MIT",
+  "homepage": "https://github.com/incharassathish77-dotcom/acp_practice_cls_1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/incharassathish77-dotcom/acp_practice_cls_1.git"
+  },
+  "scripts": {
+    "install:deps": "npm install",
+    "dev": "http-server . -p 8080 -c-1 --cors -o",
+    "start": "http-server . -p 8080 -c-1 --cors",
+    "build": "node build.js",
+    "preview": "http-server dist -p 4000 -c-1 --cors -o",
+    "clean": "node -e \"const fs=require('fs');if(fs.existsSync('dist'))fs.rmSync('dist',{recursive:true});console.log('dist/ cleaned.');\"",
+    "rebuild": "npm run clean && npm run build"
+  },
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "copyfiles": "^2.4.1"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "education",
+    "gamification",
+    "skill-tree",
+    "rpg",
+    "ai",
+    "learning",
+    "vibe-coding"
+  ]
+}
