@@ -13,7 +13,7 @@
     "install:deps": "npm install",
     "dev": "http-server . -p 8080 -c-1 --cors -o",
     "start": "http-server . -p 8080 -c-1 --cors",
-    "build": "node build.js",
+    "build": "echo 'No build step required'",
     "preview": "http-server dist -p 4000 -c-1 --cors -o",
     "clean": "node -e \"const fs=require('fs');if(fs.existsSync('dist'))fs.rmSync('dist',{recursive:true});console.log('dist/ cleaned.');\"",
     "rebuild": "npm run clean && npm run build"

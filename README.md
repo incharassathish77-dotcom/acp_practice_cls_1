@@ -2,7 +2,10 @@
 
 > An AI-Powered gamified learning platform that combines RPG game mechanics, interactive skill trees, personalized AI mentoring, Vibe Coding, and a rich community hub — all running 100% in the browser with no backend required.
 
-![Skill Tree Simulator](https://img.shields.io/badge/Status-Live-brightgreen) ![Tech](https://img.shields.io/badge/Built%20With-HTML%2FCSS%2FJS-cyan) ![License](https://img.shields.io/badge/License-MIT-violet)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?logo=github)](https://github.com/incharassathish77-dotcom/acp_practice_cls_1)
+[![Live Demo](https://img.shields.io/badge/Live-Demo-brightgreen)](https://aipoweredskilltreesimulator.vercel.app/)
+![Tech](https://img.shields.io/badge/Built%20With-HTML%2FCSS%2FJS-cyan)
+![License](https://img.shields.io/badge/License-MIT-violet)
 
 ---
 
@@ -17,7 +20,8 @@ cd acp_practice_cls_1
 npx http-server -p 8080
 
 # Then open:
-#https://aipoweredskilltreesimulator.vercel.app/
+# http://localhost:8080
+```
 
 No build step. No dependencies to install. Just open and play.
 
