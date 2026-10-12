@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RPG Student Skill Tree Simulator</title>
+    <meta name="description" content="AI-Powered Student Skill Tree Simulator — RPG-style gamified learning platform">
+    <meta property="og:title" content="RPG Student Skill Tree Simulator">
+    <meta property="og:description" content="AI-Powered Student Skill Tree Simulator — RPG-style gamified learning platform">
     <!-- CSS link -->
     <link rel="stylesheet" href="style.css">
     <!-- Chart.js for beautiful analytics -->
@@ -50,6 +53,9 @@
             <!-- Navigation Links -->
             <nav class="sidebar-menu">
                 <li class="menu-item active" data-target="dashboard"><button id="navBtnDashboard">🏠 Dashboard</button></li>
+                <li class="menu-item" data-target="tasks"><button id="navBtnTasks">📝 Study Tasks</button></li>
+                <li class="menu-item" data-target="subjects"><button id="navBtnSubjects">📚 Subjects & Syllabus</button></li>
+                <li class="menu-item" data-target="timer"><button id="navBtnTimer">⏱️ Focus Timer</button></li>
                 <li class="menu-item" data-target="skilltree"><button id="navBtnSkillTree">🌳 Skill Tree</button></li>
                 <li class="menu-item" data-target="mentor"><button id="navBtnMentor">💬 AI Mentor Chat</button></li>
                 <li class="menu-item" data-target="career"><button id="navBtnCareer">🎯 Career Advisor</button></li>
@@ -71,32 +77,105 @@
             
             <!-- 1. DASHBOARD / HOME VIEW -->
             <section id="dashboardView" class="view-section active">
-                <div class="view-header">
-                    <h1 class="view-title">Student Dashboard</h1>
-                    <p class="view-subtitle">Track your training metrics, daily missions, and AI-driven growth tips.</p>
+                <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+                    <div>
+                        <h1 class="view-title">Student Dashboard</h1>
+                        <p class="view-subtitle">Live study statistics, upcoming deadlines, subject progress, and skill progression.</p>
+                    </div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <button id="dashQuickAddTaskBtn" class="btn-action" style="width:auto; padding:10px 18px; font-size:13px; display:flex; align-items:center; gap:6px;">
+                            <span>➕</span> Quick Add Task
+                        </button>
+                        <button id="dashOpenTimerBtn" class="btn-action" style="width:auto; padding:10px 18px; font-size:13px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.14); display:flex; align-items:center; gap:6px;">
+                            <span>⏱️</span> Focus Timer
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Academic Real-Data Metric Counters Strip -->
+                <div class="tasks-metrics-strip" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:14px; margin-bottom:24px;">
+                    <div class="card-glass mini-stat-card" style="padding:16px;">
+                        <div class="mini-stat-val" id="dashMetricToday" style="font-size:24px; color:var(--color-accent);">0</div>
+                        <div class="mini-stat-label">Today's Tasks</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:16px;">
+                        <div class="mini-stat-val" id="dashMetricPending" style="font-size:24px; color:var(--color-primary);">0</div>
+                        <div class="mini-stat-label">Pending Tasks</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:16px;">
+                        <div class="mini-stat-val" id="dashMetricCompleted" style="font-size:24px; color:var(--color-success);">0</div>
+                        <div class="mini-stat-label">Completed</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:16px;">
+                        <div class="mini-stat-val" id="dashMetricOverdue" style="font-size:24px; color:var(--color-danger);">0</div>
+                        <div class="mini-stat-label">Overdue</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:16px;">
+                        <div class="mini-stat-val" id="dashMetricStudyTime" style="font-size:22px; color:var(--text-main);">0 mins</div>
+                        <div class="mini-stat-label">Recorded Study Time</div>
+                    </div>
                 </div>
 
                 <div class="dashboard-grid">
                     <div class="dashboard-left">
-                        <!-- Quick Stats Row -->
-                        <div class="stats-counter-row">
-                            <div class="card-glass mini-stat-card">
-                                <div class="mini-stat-val" id="statNodesUnlocked">0</div>
-                                <div class="mini-stat-label">Nodes Unlocked</div>
+                        <!-- Upcoming Deadlines & Priorities (Real Stored Tasks) -->
+                        <div class="card-glass accent-glow-primary">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                                <div>
+                                    <h2 style="font-size:18px; font-weight:700;">📅 Upcoming Deadlines & Priorities</h2>
+                                    <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">Tasks due today and in the next 7 days</p>
+                                </div>
+                                <button id="dashViewAllTasksBtn" style="background:none; border:none; color:var(--color-primary); font-size:12px; font-weight:600; cursor:pointer;">
+                                    View All Tasks →
+                                </button>
                             </div>
-                            <div class="card-glass mini-stat-card">
-                                <div class="mini-stat-val" id="statVibeProjects">0</div>
-                                <div class="mini-stat-label">Projects Completed</div>
+                            
+                            <!-- Overdue Alert Strip (shown dynamically if overdue tasks exist) -->
+                            <div id="dashOverdueAlertBanner" style="display:none; padding:10px 14px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.3); border-radius:8px; margin-bottom:14px; font-size:13px; color:var(--color-danger); align-items:center; gap:8px;">
+                                <span>🚨</span>
+                                <span id="dashOverdueAlertText">You have 0 overdue tasks.</span>
                             </div>
-                            <div class="card-glass mini-stat-card">
-                                <div class="mini-stat-val" id="statTotalXp">0</div>
-                                <div class="mini-stat-label">Total Earned XP</div>
+
+                            <div id="dashUpcomingTasksList" style="display:flex; flex-direction:column; gap:10px;">
+                                <!-- Dynamically populated upcoming tasks -->
+                            </div>
+                            
+                            <div id="dashUpcomingEmptyState" style="display:none; text-align:center; padding:28px 16px; border:1px dashed rgba(255,255,255,0.08); border-radius:8px;">
+                                <div style="font-size:32px; margin-bottom:8px;">🎉</div>
+                                <div style="font-size:14px; font-weight:600; color:var(--text-main);">All caught up!</div>
+                                <div style="font-size:12px; color:var(--text-muted); margin-top:4px;">No pending deadlines due in the upcoming 7 days.</div>
                             </div>
                         </div>
 
-                        <!-- Charts Visual analytics -->
-                        <div class="card-glass accent-glow-primary">
-                            <h2 style="font-size: 18px; margin-bottom: 16px;">📊 Learning Analytics</h2>
+                        <!-- Subject-Wise Progress -->
+                        <div class="card-glass accent-glow-secondary">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                                <div>
+                                    <h2 style="font-size:18px; font-weight:700;">📚 Subject-Wise Progress</h2>
+                                    <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">Calculated from actual completed tasks per subject</p>
+                                </div>
+                            </div>
+
+                            <div id="dashSubjectProgressContainer" style="display:flex; flex-direction:column; gap:12px;">
+                                <!-- Dynamically calculated progress bars per subject -->
+                            </div>
+
+                            <div id="dashSubjectEmptyState" style="display:none; text-align:center; padding:24px 16px; border:1px dashed rgba(255,255,255,0.08); border-radius:8px;">
+                                <div style="font-size:13px; color:var(--text-muted);">No subject tasks created yet. Add tasks with subjects to view progress.</div>
+                            </div>
+                        </div>
+
+                        <!-- Learning Analytics Radar Chart -->
+                        <div class="card-glass">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                                <div>
+                                    <h2 style="font-size:18px; font-weight:700;">📊 Skill Tree Analytics</h2>
+                                    <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">Competency breakdown across specializations</p>
+                                </div>
+                                <span style="font-size:11px; padding:3px 8px; border-radius:12px; background:rgba(0,240,255,0.1); color:var(--color-primary); font-weight:700;">
+                                    <span id="statNodesUnlocked">0</span> Nodes Unlocked
+                                </span>
+                            </div>
                             <div class="chart-container">
                                 <canvas id="skillsRadarChart"></canvas>
                             </div>
@@ -104,21 +183,51 @@
                     </div>
 
                     <div class="dashboard-right">
-                        <!-- AI Mentor Action tip -->
+                        <!-- Study Priority Summary -->
                         <div class="card-glass accent-glow-amber">
-                            <h2 style="font-size: 18px; margin-bottom: 8px;">🧠 Mentor Next Step Recommendation</h2>
-                            <div id="dashMentorRecBox" style="font-size: 14px; line-height: 1.5; margin-bottom: 16px;">
-                                Analyzing learning logs...
+                            <h2 style="font-size:18px; font-weight:700; margin-bottom:8px;">🎯 Top Study Priority</h2>
+                            <div id="dashTopPriorityBox" style="font-size:14px; line-height:1.5; margin-bottom:14px;">
+                                Loading priorities...
                             </div>
-                            <button id="dashGotoSkillBtn" class="btn-action">Unlock Recommended Node</button>
+                            <button id="dashOpenTasksBtn" class="btn-action" style="font-size:13px;">Manage All Tasks</button>
                         </div>
 
-                        <!-- Daily Missions list -->
-                        <div class="card-glass accent-glow-secondary">
-                            <h2 style="font-size: 18px; margin-bottom: 12px;">⚔️ Active Daily Missions</h2>
+                        <!-- AI Mentor Action tip -->
+                        <div class="card-glass">
+                            <h2 style="font-size:18px; font-weight:700; margin-bottom:8px;">🧠 AI Mentor Recommendation</h2>
+                            <div id="dashMentorRecBox" style="font-size:14px; line-height:1.5; margin-bottom:14px;">
+                                Analyzing learning logs...
+                            </div>
+                            <button id="dashGotoSkillBtn" class="btn-action" style="font-size:13px;">Unlock Recommended Node</button>
+                        </div>
+
+                        <!-- Gamified Daily Missions (Kept distinct and separate from academic tasks) -->
+                        <div class="card-glass" style="border-top:4px solid var(--color-accent);">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+                                <h2 style="font-size:17px; font-weight:700;">⚔️ Daily RPG Missions</h2>
+                                <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--color-accent); font-weight:700; background:rgba(245,158,11,0.15); padding:2px 6px; border-radius:4px;">Bonus XP</span>
+                            </div>
+                            <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Gamified learning activities to earn player levels and rank badges.</p>
                             <ul class="mission-list" id="dashMissionList">
                                 <!-- Dynamic Mission Items -->
                             </ul>
+                        </div>
+
+                        <!-- Mini RPG Stats Card -->
+                        <div class="card-glass" style="padding:16px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <div style="display:flex; align-items:center; gap:10px;">
+                                    <span style="font-size:24px;">🏆</span>
+                                    <div>
+                                        <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">All-Time Progress</div>
+                                        <div style="font-size:14px; font-weight:700;"><span id="statTotalXp">0</span> Lifetime XP</div>
+                                    </div>
+                                </div>
+                                <div style="text-align:right;">
+                                    <div style="font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">Vibe Projects</div>
+                                    <div style="font-size:14px; font-weight:700;"><span id="statVibeProjects">0</span> Completed</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -514,7 +623,488 @@
                 </div>
             </section>
 
+            <!-- 10. STUDY TASKS & ASSIGNMENTS VIEW -->
+            <section id="tasksView" class="view-section">
+                <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+                    <div>
+                        <h1 class="view-title">Study Tasks & Assignments</h1>
+                        <p class="view-subtitle">Track your coursework deliverables, deadlines, and study priorities.</p>
+                    </div>
+                    <button id="btnOpenCreateTaskModal" class="btn-action" style="width:auto; padding:10px 20px; font-size:14px; display:flex; align-items:center; gap:8px;">
+                        <span>➕</span> Add Study Task
+                    </button>
+                </div>
+
+                <!-- Quick Metric Counters Strip -->
+                <div class="tasks-metrics-strip" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:12px; margin-bottom:20px;">
+                    <div class="card-glass mini-stat-card" style="padding:14px;">
+                        <div class="mini-stat-val" id="taskMetricTotal" style="font-size:22px;">0</div>
+                        <div class="mini-stat-label">Total Tasks</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:14px;">
+                        <div class="mini-stat-val" id="taskMetricPending" style="font-size:22px; color:var(--color-primary);">0</div>
+                        <div class="mini-stat-label">Pending</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:14px;">
+                        <div class="mini-stat-val" id="taskMetricCompleted" style="font-size:22px; color:var(--color-success);">0</div>
+                        <div class="mini-stat-label">Completed</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:14px;">
+                        <div class="mini-stat-val" id="taskMetricOverdue" style="font-size:22px; color:var(--color-danger);">0</div>
+                        <div class="mini-stat-label">Overdue</div>
+                    </div>
+                </div>
+
+                <!-- Filters & Search Toolbar -->
+                <div class="card-glass tasks-toolbar" style="padding:16px; margin-bottom:20px; display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+                    <div style="flex:2; min-width:200px;">
+                        <input type="text" id="taskSearchInput" class="chat-input" style="width:100%;" placeholder="🔍 Search tasks or notes...">
+                    </div>
+                    <div style="flex:1; min-width:140px;">
+                        <select id="taskSubjectFilter" class="chat-input" style="width:100%;">
+                            <option value="all">All Subjects</option>
+                        </select>
+                    </div>
+                    <div style="flex:1; min-width:130px;">
+                        <select id="taskPriorityFilter" class="chat-input" style="width:100%;">
+                            <option value="all">All Priorities</option>
+                            <option value="high">🔥 High</option>
+                            <option value="medium">⚡ Medium</option>
+                            <option value="low">🌱 Low</option>
+                        </select>
+                    </div>
+                    <div style="flex:1; min-width:130px;">
+                        <select id="taskStatusFilter" class="chat-input" style="width:100%;">
+                            <option value="all">All Statuses</option>
+                            <option value="pending">⏳ Pending</option>
+                            <option value="completed">✅ Completed</option>
+                            <option value="overdue">🚨 Overdue</option>
+                        </select>
+                    </div>
+                    <div style="flex:1; min-width:160px;">
+                        <select id="taskSortFilter" class="chat-input" style="width:100%;">
+                            <option value="dueDateAsc">📅 Due Date (Soonest)</option>
+                            <option value="dueDateDesc">📅 Due Date (Latest)</option>
+                            <option value="priorityDesc">🔥 Priority (High to Low)</option>
+                            <option value="newest">🕒 Recently Created</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tasks List -->
+                <div id="tasksListContainer" style="display:flex; flex-direction:column; gap:12px;">
+                    <!-- Dynamically populated task items -->
+                </div>
+
+                <!-- Empty State -->
+                <div id="tasksEmptyState" class="card-glass" style="display:none; text-align:center; padding:48px 24px; border:1px dashed rgba(255,255,255,0.1);">
+                    <div style="font-size:48px; margin-bottom:12px;">📋</div>
+                    <h3 style="font-size:18px; font-weight:700; margin-bottom:6px;">No study tasks found</h3>
+                    <p style="font-size:13px; color:var(--text-muted); max-width:400px; margin:0 auto 16px; line-height:1.5;">You don't have any tasks matching your filters. Click "Add Study Task" to organize your coursework deliverables.</p>
+                    <button id="emptyStateAddBtn" class="btn-action" style="width:auto; padding:8px 18px; margin:0 auto;">➕ Create First Task</button>
+                </div>
+            </section>
+
+            <!-- 11. SUBJECTS & SYLLABUS TRACKING VIEW -->
+            <section id="subjectsView" class="view-section">
+                <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+                    <div>
+                        <h1 class="view-title">Subjects & Syllabus Tracker</h1>
+                        <p class="view-subtitle">Organize your academic modules, syllabus topics, and exam preparations.</p>
+                    </div>
+                    <button id="btnOpenCreateSubjectModal" class="btn-action" style="width:auto; padding:10px 20px; font-size:14px; display:flex; align-items:center; gap:8px;">
+                        <span>➕</span> Add Subject
+                    </button>
+                </div>
+
+                <!-- Subjects Summary Metrics -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(130px, 1fr)); gap:12px; margin-bottom:20px;">
+                    <div class="card-glass mini-stat-card" style="padding:14px;">
+                        <div class="mini-stat-val" id="subjMetricTotal" style="font-size:22px; color:var(--color-primary);">0</div>
+                        <div class="mini-stat-label">Enrolled Subjects</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:14px;">
+                        <div class="mini-stat-val" id="subjMetricTopicsCompleted" style="font-size:22px; color:var(--color-success);">0</div>
+                        <div class="mini-stat-label">Topics Mastered</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:14px;">
+                        <div class="mini-stat-val" id="subjMetricTopicsPending" style="font-size:22px; color:var(--color-accent);">0</div>
+                        <div class="mini-stat-label">Topics In Progress</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:14px;">
+                        <div class="mini-stat-val" id="subjMetricOverallProgress" style="font-size:22px; color:var(--color-secondary);">0%</div>
+                        <div class="mini-stat-label">Syllabus Completion</div>
+                    </div>
+                </div>
+
+                <!-- Subjects Grid Container -->
+                <div id="subjectsListContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:18px;">
+                    <!-- Populated dynamically -->
+                </div>
+
+                <!-- Subjects Empty State -->
+                <div id="subjectsEmptyState" class="card-glass" style="display:none; text-align:center; padding:48px 24px; border:1px dashed rgba(255,255,255,0.1);">
+                    <div style="font-size:48px; margin-bottom:12px;">📚</div>
+                    <h3 style="font-size:18px; font-weight:700; margin-bottom:6px;">No Subjects Added Yet</h3>
+                    <p style="font-size:13px; color:var(--text-muted); max-width:440px; margin:0 auto 16px; line-height:1.5;">Track your syllabus, units, notes, and exam dates for each course module to calculate true syllabus mastery.</p>
+                    <button id="emptyStateAddSubjectBtn" class="btn-action" style="width:auto; padding:8px 18px; margin:0 auto;">➕ Add First Subject</button>
+                </div>
+            </section>
+
+            <!-- 12. FOCUS & POMODORO STUDY TIMER VIEW -->
+            <section id="timerView" class="view-section">
+                <div class="view-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+                    <div>
+                        <h1 class="view-title">⏱️ Focus & Study Timer</h1>
+                        <p class="view-subtitle">Pomodoro intervals, custom countdowns, ambient focus audio, subject tagging, and XP rewards.</p>
+                    </div>
+                    <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                        <button id="btnOpenLogSessionModal" class="btn-action" style="width:auto; padding:10px 18px; font-size:13px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.12); display:flex; align-items:center; gap:6px;">
+                            <span>➕</span> Log Offline Session
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Timer Analytics Metrics Strip -->
+                <div class="tasks-metrics-strip" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:14px; margin-bottom:24px;">
+                    <div class="card-glass mini-stat-card" style="padding:16px;">
+                        <div class="mini-stat-val" id="timerMetricTodayFocus" style="font-size:22px; color:var(--color-primary);">0m</div>
+                        <div class="mini-stat-label">Today's Focus</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:16px;">
+                        <div class="mini-stat-val" id="timerMetricSessionsToday" style="font-size:22px; color:var(--color-accent);">0</div>
+                        <div class="mini-stat-label">Sessions Today</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:16px;">
+                        <div class="mini-stat-val" id="timerMetricTotalStudy" style="font-size:22px; color:var(--text-main);">0h 0m</div>
+                        <div class="mini-stat-label">All-Time Study</div>
+                    </div>
+                    <div class="card-glass mini-stat-card" style="padding:16px;">
+                        <div class="mini-stat-val" id="timerMetricXpEarned" style="font-size:22px; color:var(--color-success);">0 XP</div>
+                        <div class="mini-stat-label">Study XP Earned</div>
+                    </div>
+                </div>
+
+                <!-- Main Focus Timer Arena -->
+                <div class="timer-arena-grid" style="display:grid; grid-template-columns: 1fr 340px; gap:24px; margin-bottom:30px;">
+                    <!-- Left: Interactive Timer Stage -->
+                    <div class="card-glass timer-stage-card" style="padding:32px; display:flex; flex-direction:column; align-items:center; text-align:center; position:relative;">
+                        <!-- Mode Selector Tabs -->
+                        <div class="timer-mode-pills" style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:24px;">
+                            <button type="button" class="timer-mode-btn active" data-mode="pomodoro" data-duration="25">🎯 Pomodoro (25m)</button>
+                            <button type="button" class="timer-mode-btn" data-mode="shortBreak" data-duration="5">☕ Short Break (5m)</button>
+                            <button type="button" class="timer-mode-btn" data-mode="longBreak" data-duration="15">🌴 Long Break (15m)</button>
+                            <button type="button" class="timer-mode-btn" data-mode="custom" data-duration="30">⏳ Custom</button>
+                            <button type="button" class="timer-mode-btn" data-mode="stopwatch" data-duration="0">⏱️ Stopwatch</button>
+                        </div>
+
+                        <!-- Custom Duration Picker (visible when custom mode active) -->
+                        <div id="customDurationControls" style="display:none; align-items:center; gap:8px; margin-bottom:20px; background:rgba(255,255,255,0.03); padding:8px 16px; border-radius:10px; border:1px solid rgba(255,255,255,0.06); flex-wrap:wrap; justify-content:center;">
+                            <span style="font-size:12px; color:var(--text-muted); font-weight:600;">Custom Duration:</span>
+                            <button type="button" class="custom-preset-btn" data-mins="15">15m</button>
+                            <button type="button" class="custom-preset-btn" data-mins="30">30m</button>
+                            <button type="button" class="custom-preset-btn" data-mins="45">45m</button>
+                            <button type="button" class="custom-preset-btn" data-mins="60">60m</button>
+                            <button type="button" class="custom-preset-btn" data-mins="90">90m</button>
+                            <input type="number" id="customMinutesInput" min="1" max="180" value="30" style="width:58px; padding:6px 6px; border-radius:6px; background:rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.15); color:white; font-size:13px; text-align:center;" title="Minutes">
+                            <span style="font-size:12px; color:var(--text-muted);">min</span>
+                        </div>
+
+                        <!-- Circular SVG Progress Ring + Digital Display -->
+                        <div class="timer-display-wrap" style="position:relative; width:280px; height:280px; margin:8px auto 24px;">
+                            <svg class="timer-progress-svg" viewBox="0 0 280 280" style="width:100%; height:100%; transform: rotate(-90deg);">
+                                <circle cx="140" cy="140" r="120" class="timer-ring-bg" stroke="rgba(255,255,255,0.06)" stroke-width="12" fill="none" />
+                                <circle id="timerProgressRing" cx="140" cy="140" r="120" class="timer-ring-fill" stroke="var(--color-primary)" stroke-width="12" stroke-linecap="round" fill="none" stroke-dasharray="753.98" stroke-dashoffset="0" style="transition: stroke-dashoffset 0.5s ease, stroke 0.3s;" />
+                            </svg>
+                            <div class="timer-display-inner" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+                                <div id="timerStatusBadge" class="timer-status-badge" style="font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--color-primary); margin-bottom:6px; padding:3px 10px; background:rgba(0,240,255,0.08); border-radius:12px; border:1px solid rgba(0,240,255,0.2);">FOCUS INTERVAL</div>
+                                <div id="timerDigits" style="font-size:56px; font-weight:800; font-family:monospace; letter-spacing:2px; color:var(--text-main); line-height:1;">25:00</div>
+                                <div id="timerCycleLabel" style="font-size:12px; color:var(--text-muted); margin-top:8px;">Interval 1 of 4 · +50 XP Reward</div>
+                            </div>
+                        </div>
+
+                        <!-- Active Subject & Target Task Banner -->
+                        <div class="timer-subject-pill" style="display:flex; align-items:center; gap:8px; margin-bottom:24px; padding:8px 16px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:20px; font-size:13px; max-width:90%; overflow:hidden;">
+                            <span>📖 Subject:</span>
+                            <span id="timerActiveSubjectLabel" style="font-weight:700; color:var(--color-primary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">General Study</span>
+                            <span id="timerActiveTaskPill" style="display:none; color:var(--text-muted); font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">• <em id="timerActiveTaskTitle"></em></span>
+                        </div>
+
+                        <!-- Primary Controls -->
+                        <div class="timer-controls-row" style="display:flex; align-items:center; justify-content:center; gap:16px;">
+                            <button type="button" id="timerResetBtn" class="timer-ctrl-btn secondary" title="Reset Timer" style="width:48px; height:48px; border-radius:50%; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:var(--text-main); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;">↺</button>
+                            <button type="button" id="timerPlayPauseBtn" class="timer-ctrl-btn primary" title="Start / Pause" style="min-width:160px; height:52px; border-radius:26px; border:none; background:linear-gradient(135deg, var(--color-primary), #00a8ff); color:#000; font-weight:800; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 0 20px rgba(0,240,255,0.35); transition:all 0.2s;">
+                                <span id="timerPlayIcon">▶</span>
+                                <span id="timerPlayText">Start Focus</span>
+                            </button>
+                            <button type="button" id="timerSkipBtn" class="timer-ctrl-btn secondary" title="Finish / Complete Session Early" style="width:48px; height:48px; border-radius:50%; border:1px solid rgba(255,255,255,0.12); background:rgba(255,255,255,0.04); color:var(--text-main); font-size:18px; cursor:pointer; display:flex; align-items:center; justify-content:center;">⏭</button>
+                        </div>
+                    </div>
+
+                    <!-- Right Sidebar: Configuration, Ambient Sounds, and Active Task Sync -->
+                    <div style="display:flex; flex-direction:column; gap:20px;">
+                        <!-- Subject & Task Selector Card -->
+                        <div class="card-glass" style="padding:22px; display:flex; flex-direction:column; gap:16px;">
+                            <h3 style="font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                                <span>📚</span> Session Target
+                            </h3>
+
+                            <div>
+                                <label for="timerSubjectSelect" style="display:block; font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:6px; letter-spacing:0.5px;">SUBJECT</label>
+                                <select id="timerSubjectSelect" class="chat-input" style="width:100%; font-size:13px;">
+                                    <option value="General Study">General Study</option>
+                                    <!-- Populated from state.subjects -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="timerTaskSelect" style="display:block; font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:6px; letter-spacing:0.5px;">LINK TO STUDY TASK (OPTIONAL)</label>
+                                <select id="timerTaskSelect" class="chat-input" style="width:100%; font-size:13px;">
+                                    <option value="">None (Independent Study)</option>
+                                    <!-- Populated from pending state.tasks -->
+                                </select>
+                            </div>
+
+                            <div>
+                                <label for="timerTopicNoteInput" style="display:block; font-size:11px; font-weight:700; color:var(--text-muted); margin-bottom:6px; letter-spacing:0.5px;">FOCUS NOTE / GOAL</label>
+                                <input type="text" id="timerTopicNoteInput" class="chat-input" style="width:100%; font-size:13px;" placeholder="e.g. Dynamic Programming review" maxlength="100">
+                            </div>
+                        </div>
+
+                        <!-- Audio & Atmosphere Card -->
+                        <div class="card-glass" style="padding:22px; display:flex; flex-direction:column; gap:14px;">
+                            <h3 style="font-size:15px; font-weight:700; display:flex; align-items:center; gap:8px;">
+                                <span>🎧</span> Ambient Atmosphere
+                            </h3>
+                            <p style="font-size:12px; color:var(--text-muted); line-height:1.4;">Synthesized focus soundscape and gentle session bells via Web Audio API.</p>
+
+                            <div style="display:flex; flex-direction:column; gap:12px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:13px; font-weight:600;">Soundscape:</span>
+                                    <select id="timerSoundscapeSelect" class="chat-input" style="width:auto; padding:6px 10px; font-size:12px;">
+                                        <option value="none">🔇 Off (Silent)</option>
+                                        <option value="hum">🧘 432Hz Focus Hum</option>
+                                        <option value="rain">🌧️ Soft Rainscape</option>
+                                        <option value="white">📻 White Noise</option>
+                                    </select>
+                                </div>
+                                <div style="display:flex; justify-content:space-between; align-items:center;">
+                                    <span style="font-size:13px; font-weight:600;">Chime Bell at End:</span>
+                                    <input type="checkbox" id="timerChimeToggle" checked style="width:18px; height:18px; accent-color:var(--color-primary); cursor:pointer;">
+                                </div>
+                                <button type="button" id="btnTestChime" class="btn-action" style="background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); font-size:11px; padding:8px 12px; width:100%; margin-top:2px;">🔔 Test Bell Sound</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Study Session History & Logs Section -->
+                <div class="card-glass" style="padding:24px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+                        <div>
+                            <h2 style="font-size:18px; font-weight:700;">📜 Recorded Study Sessions</h2>
+                            <p style="font-size:12px; color:var(--text-muted); margin-top:2px;">Complete history of focused learning blocks and XP progression.</p>
+                        </div>
+                        <div style="display:flex; gap:10px; align-items:center;">
+                            <span id="timerSessionsCountBadge" style="font-size:12px; color:var(--color-primary); background:rgba(0,240,255,0.08); padding:4px 10px; border-radius:12px; font-weight:600;">0 sessions</span>
+                        </div>
+                    </div>
+
+                    <div id="timerSessionsTableContainer" style="overflow-x:auto;">
+                        <table class="timer-history-table" style="width:100%; border-collapse:collapse; text-align:left; font-size:13px;">
+                            <thead>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.08); color:var(--text-muted); font-size:11px; letter-spacing:0.5px;">
+                                    <th style="padding:10px 12px;">DATE & TIME</th>
+                                    <th style="padding:10px 12px;">SUBJECT</th>
+                                    <th style="padding:10px 12px;">DURATION</th>
+                                    <th style="padding:10px 12px;">XP GAINED</th>
+                                    <th style="padding:10px 12px; text-align:right;">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="timerSessionsTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="timerSessionsEmptyState" style="display:none; text-align:center; padding:36px 16px; color:var(--text-muted);">
+                        <div style="font-size:36px; margin-bottom:8px;">⏳</div>
+                        <div style="font-size:14px; font-weight:600; color:var(--text-main);">No Study Sessions Recorded Yet</div>
+                        <p style="font-size:12px; max-width:340px; margin:4px auto 14px;">Start a 25-minute Pomodoro session above or log an offline study block to start earning XP!</p>
+                    </div>
+                </div>
+            </section>
+
         </main>
+
+        <!-- --- SUBJECT CREATE / EDIT MODAL --- -->
+        <div class="level-up-modal" id="subjectModal">
+            <div class="level-up-card" style="max-width: 520px; text-align:left; border-color:var(--color-primary); box-shadow: var(--shadow-neon-cyan); padding:30px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
+                    <h2 id="subjectModalTitle" style="font-size:20px; font-weight:800; color:var(--color-primary);">Add Subject</h2>
+                    <button id="subjectModalCloseBtn" style="background:none; border:none; color:var(--text-muted); font-size:24px; cursor:pointer;" aria-label="Close dialog">×</button>
+                </div>
+
+                <form id="subjectForm" style="display:flex; flex-direction:column; gap:16px;" onsubmit="return false;">
+                    <input type="hidden" id="subjectModalId" value="">
+
+                    <div>
+                        <label for="subjectNameInput" style="display:block; font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">SUBJECT TITLE *</label>
+                        <input type="text" id="subjectNameInput" class="chat-input" style="width:100%;" placeholder="e.g. Data Structures & Algorithms" required maxlength="60">
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                        <div>
+                            <label for="subjectCodeInput" style="display:block; font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">COURSE CODE</label>
+                            <input type="text" id="subjectCodeInput" class="chat-input" style="width:100%;" placeholder="e.g. CS201" maxlength="20">
+                        </div>
+                        <div>
+                            <label for="subjectColorInput" style="display:block; font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">THEME ACCENT</label>
+                            <select id="subjectColorInput" class="chat-input" style="width:100%;">
+                                <option value="cyan">Cyan (#00f0ff)</option>
+                                <option value="purple">Purple (#a855f7)</option>
+                                <option value="amber">Amber (#f59e0b)</option>
+                                <option value="emerald">Emerald (#10b981)</option>
+                                <option value="rose">Rose (#f43f5e)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="subjectExamDateInput" style="display:block; font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">EXAM / FINALS DATE (OPTIONAL)</label>
+                        <input type="date" id="subjectExamDateInput" class="chat-input" style="width:100%;">
+                    </div>
+
+                    <div>
+                        <label for="subjectNotesInput" style="display:block; font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">SUBJECT NOTES / PROFESSOR / LOCATION</label>
+                        <textarea id="subjectNotesInput" class="chat-input" style="width:100%; height:75px; resize:vertical;" placeholder="e.g. Prof. Turing, Hall B, Grading: 40% midterms + 60% finals" maxlength="500"></textarea>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+                        <button type="button" id="subjectCancelBtn" class="btn-action" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); width:auto; padding:10px 18px;">Cancel</button>
+                        <button type="button" id="subjectSaveBtn" class="btn-action" style="width:auto; padding:10px 24px;">Save Subject</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- --- SUBJECT TOPIC ADD / EDIT MODAL --- -->
+        <div class="level-up-modal" id="topicModal">
+            <div class="level-up-card" style="max-width: 480px; text-align:left; border-color:var(--color-secondary); box-shadow: 0 0 25px rgba(112, 0, 255, 0.35); padding:26px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:10px;">
+                    <h3 id="topicModalTitle" style="font-size:18px; font-weight:800; color:var(--color-secondary);">Add Syllabus Topic</h3>
+                    <button id="topicModalCloseBtn" style="background:none; border:none; color:var(--text-muted); font-size:22px; cursor:pointer;" aria-label="Close dialog">×</button>
+                </div>
+
+                <form id="topicForm" style="display:flex; flex-direction:column; gap:14px;" onsubmit="return false;">
+                    <input type="hidden" id="topicModalSubjectId" value="">
+                    <input type="hidden" id="topicModalTopicId" value="">
+
+                    <div>
+                        <label for="topicTitleInput" style="display:block; font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">TOPIC OR UNIT TITLE *</label>
+                        <input type="text" id="topicTitleInput" class="chat-input" style="width:100%;" placeholder="e.g. Binary Search Trees & AVL Rotations" required maxlength="80">
+                    </div>
+
+                    <div>
+                        <label for="topicEstimatedHoursInput" style="display:block; font-size:12px; font-weight:700; color:var(--text-muted); margin-bottom:6px;">ESTIMATED STUDY HOURS</label>
+                        <input type="number" id="topicEstimatedHoursInput" class="chat-input" style="width:100%;" min="1" max="100" value="2">
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+                        <button type="button" id="topicCancelBtn" class="btn-action" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); width:auto; padding:8px 16px;">Cancel</button>
+                        <button type="button" id="topicSaveBtn" class="btn-action" style="width:auto; padding:8px 22px;">Save Topic</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- --- SUBJECT DELETE CONFIRMATION MODAL --- -->
+        <div class="level-up-modal" id="subjectDeleteModal">
+            <div class="level-up-card" style="max-width: 440px; text-align:left; border-color:var(--color-danger); box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); padding:28px;">
+                <div style="font-size:36px; margin-bottom:12px;">🗑️</div>
+                <h3 style="font-size:18px; font-weight:800; color:var(--color-danger); margin-bottom:8px;">Delete Subject & Syllabus?</h3>
+                <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;">Are you sure you want to delete this subject and its associated syllabus topics? Tasks with this subject tag will be kept.</p>
+                <div id="subjectDeleteTitlePreview" style="font-size:14px; font-weight:700; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:20px; border-left:3px solid var(--color-danger);"></div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" id="subjectCancelDeleteBtn" class="btn-action" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); width:auto; padding:8px 16px;">Cancel</button>
+                    <button type="button" id="subjectConfirmDeleteBtn" class="btn-action" style="background:var(--color-danger); color:white; width:auto; padding:8px 20px;">Delete Subject</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- --- TASK CREATE / EDIT MODAL --- -->
+        <div class="level-up-modal" id="taskModal">
+            <div class="level-up-card" style="max-width: 520px; text-align:left; border-color:var(--color-primary); box-shadow: var(--shadow-neon-cyan); padding:30px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
+                    <h2 id="taskModalTitle" style="font-size:20px; font-weight:800; color:var(--color-primary);">Add Study Task</h2>
+                    <button id="taskModalCloseBtn" style="background:none; border:none; color:var(--text-muted); font-size:24px; cursor:pointer;" aria-label="Close dialog">×</button>
+                </div>
+
+                <form id="taskForm" style="display:flex; flex-direction:column; gap:16px;" onsubmit="return false;">
+                    <input type="hidden" id="taskModalId" value="">
+
+                    <div>
+                        <label for="taskInputTitle" style="display:block; font-size:11px; color:var(--color-primary); font-weight:700; letter-spacing:1px; margin-bottom:6px;">TASK TITLE *</label>
+                        <input type="text" id="taskInputTitle" class="chat-input" style="width:100%;" placeholder="e.g. Implement Dijkstra's Algorithm" required maxlength="100">
+                        <div id="taskTitleError" style="font-size:11px; color:var(--color-danger); margin-top:4px; display:none;">Task title is required.</div>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                        <div>
+                            <label for="taskInputSubject" style="display:block; font-size:11px; color:var(--color-primary); font-weight:700; letter-spacing:1px; margin-bottom:6px;">SUBJECT / COURSE *</label>
+                            <input type="text" id="taskInputSubject" class="chat-input" style="width:100%;" placeholder="e.g. Algorithms" list="subjectDatalist" required maxlength="50">
+                            <datalist id="subjectDatalist">
+                                <option value="Algorithms">
+                                <option value="Operating Systems">
+                                <option value="Computer Networks">
+                                <option value="DBMS">
+                                <option value="Web Development">
+                                <option value="Machine Learning">
+                                <option value="General Study">
+                            </datalist>
+                        </div>
+                        <div>
+                            <label for="taskInputPriority" style="display:block; font-size:11px; color:var(--color-primary); font-weight:700; letter-spacing:1px; margin-bottom:6px;">PRIORITY *</label>
+                            <select id="taskInputPriority" class="chat-input" style="width:100%;">
+                                <option value="high">🔥 High</option>
+                                <option value="medium" selected>⚡ Medium</option>
+                                <option value="low">🌱 Low</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="taskInputDueDate" style="display:block; font-size:11px; color:var(--color-primary); font-weight:700; letter-spacing:1px; margin-bottom:6px;">DUE DATE *</label>
+                        <input type="date" id="taskInputDueDate" class="chat-input" style="width:100%;" required>
+                        <div id="taskDueDateError" style="font-size:11px; color:var(--color-danger); margin-top:4px; display:none;">Please specify a valid due date.</div>
+                    </div>
+
+                    <div>
+                        <label for="taskInputNotes" style="display:block; font-size:11px; color:var(--color-primary); font-weight:700; letter-spacing:1px; margin-bottom:6px;">NOTES / SPECIFICATIONS (OPTIONAL)</label>
+                        <textarea id="taskInputNotes" class="chat-input" style="width:100%; height:75px; resize:vertical; font-family:var(--font-sans);" placeholder="e.g. Chapter 4 exercises, test with edge cases..."></textarea>
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:8px;">
+                        <button type="button" id="taskModalCancelBtn" class="btn-action" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); width:auto; padding:10px 20px;">Cancel</button>
+                        <button type="button" id="taskModalSaveBtn" class="btn-action" style="width:auto; padding:10px 24px;">Save Task</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- --- TASK DELETE CONFIRMATION MODAL --- -->
+        <div class="level-up-modal" id="taskDeleteModal">
+            <div class="level-up-card" style="max-width: 440px; text-align:left; border-color:var(--color-danger); box-shadow: 0 0 20px rgba(239, 68, 68, 0.3); padding:28px;">
+                <div style="font-size:36px; margin-bottom:12px;">🗑️</div>
+                <h3 style="font-size:18px; font-weight:800; color:var(--color-danger); margin-bottom:8px;">Delete Study Task?</h3>
+                <p style="font-size:13px; color:var(--text-muted); line-height:1.5; margin-bottom:12px;">Are you sure you want to permanently remove this task? This cannot be undone.</p>
+                <div id="taskDeleteTitlePreview" style="font-size:14px; font-weight:700; padding:10px; background:rgba(255,255,255,0.03); border-radius:8px; margin-bottom:20px; border-left:3px solid var(--color-danger);"></div>
+                <div style="display:flex; justify-content:flex-end; gap:10px;">
+                    <button type="button" id="taskCancelDeleteBtn" class="btn-action" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); width:auto; padding:8px 16px;">Cancel</button>
+                    <button type="button" id="taskConfirmDeleteBtn" class="btn-action" style="background:var(--color-danger); color:white; width:auto; padding:8px 20px;">Delete Task</button>
+                </div>
+            </div>
+        </div>
 
         <!-- --- LEVEL UP OVERLAY CELEBRATION --- -->
         <div class="level-up-modal" id="levelUpModal">
@@ -528,6 +1118,60 @@
                 </div>
                 <button class="btn-action" id="levelUpModalCloseBtn">Accept Rewards & Continue</button>
             </div>
+        <!-- --- LOG OFFLINE STUDY SESSION MODAL --- -->
+        <div class="level-up-modal" id="logSessionModal">
+            <div class="level-up-card" style="max-width: 480px; text-align:left; border-color:var(--color-primary); box-shadow: var(--shadow-neon-cyan); padding:28px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px;">
+                    <h3 style="font-size:18px; font-weight:800; color:var(--color-primary);">Log Offline Study Session</h3>
+                    <button id="logSessionCloseBtn" style="background:none; border:none; color:var(--text-muted); font-size:24px; cursor:pointer;" aria-label="Close dialog">×</button>
+                </div>
+
+                <form id="logSessionForm" style="display:flex; flex-direction:column; gap:16px;" onsubmit="return false;">
+                    <div>
+                        <label for="logSessionSubjectInput" style="display:block; font-size:11px; color:var(--color-primary); font-weight:700; letter-spacing:0.5px; margin-bottom:6px;">SUBJECT *</label>
+                        <select id="logSessionSubjectInput" class="chat-input" style="width:100%;">
+                            <option value="General Study">General Study</option>
+                            <!-- Populated from state.subjects -->
+                        </select>
+                    </div>
+
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:14px;">
+                        <div>
+                            <label for="logSessionDurationInput" style="display:block; font-size:11px; color:var(--color-primary); font-weight:700; letter-spacing:0.5px; margin-bottom:6px;">DURATION (MINUTES) *</label>
+                            <input type="number" id="logSessionDurationInput" class="chat-input" style="width:100%;" min="5" max="600" value="45" required>
+                        </div>
+                        <div>
+                            <label for="logSessionDateInput" style="display:block; font-size:11px; color:var(--color-primary); font-weight:700; letter-spacing:0.5px; margin-bottom:6px;">DATE *</label>
+                            <input type="date" id="logSessionDateInput" class="chat-input" style="width:100%;" required>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="logSessionNotesInput" style="display:block; font-size:11px; color:var(--color-primary); font-weight:700; letter-spacing:0.5px; margin-bottom:6px;">STUDY NOTES / TOPIC COVERED</label>
+                        <input type="text" id="logSessionNotesInput" class="chat-input" style="width:100%;" placeholder="e.g. Read Operating Systems Chapter 5 Memory Paging" maxlength="100">
+                    </div>
+
+                    <div style="padding:10px 14px; background:rgba(0,240,255,0.06); border-radius:8px; border:1px solid rgba(0,240,255,0.15); font-size:12px; color:var(--text-main);">
+                        ✨ <strong>XP Reward:</strong> You will earn <span id="logSessionXpPreview" style="color:var(--color-primary); font-weight:700;">+90 XP</span> for this session (2 XP / minute).
+                    </div>
+
+                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:8px;">
+                        <button type="button" id="logSessionCancelBtn" class="btn-action" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); width:auto; padding:8px 16px;">Cancel</button>
+                        <button type="button" id="logSessionSaveBtn" class="btn-action" style="width:auto; padding:8px 24px;">Log Session</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Floating Persistent Mini-Timer Widget (Visible across other tabs when timer is active) -->
+        <div id="floatingMiniTimer" class="floating-mini-timer" style="display:none;">
+            <div id="miniTimerClickableArea" style="display:flex; align-items:center; gap:8px; cursor:pointer;" title="Click to open Focus Timer">
+                <span id="miniTimerIcon">⏱️</span>
+                <span id="miniTimerDigits" style="font-family:monospace; font-weight:800; font-size:14px; color:var(--text-main);">25:00</span>
+                <span id="miniTimerSubject" style="font-size:11px; color:var(--color-primary); max-width:85px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">Study</span>
+            </div>
+            <button id="miniTimerPlayPauseBtn" style="background:none; border:none; color:var(--color-primary); font-size:14px; cursor:pointer; padding:2px 6px;" title="Play/Pause">⏸</button>
+            <button id="miniTimerCloseBtn" style="background:none; border:none; color:var(--text-muted); font-size:14px; cursor:pointer; padding:2px 4px;" title="Dismiss mini widget">×</button>
         </div>
 
         <!-- --- ONBOARDING INITIAL SURVEY FOR FIRST VISIT --- -->
@@ -591,6 +1235,7 @@
     </div>
 
     <!-- Scripts dependencies in order -->
+    <script src="portfolioData.js"></script>
     <script src="skillsData.js"></script>
     <script src="careerData.js"></script>
     <script src="toolsData.js"></script>

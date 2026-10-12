@@ -1,0 +1,7 @@
+{
+  "name": "RPG Student Skill Tree Simulator",
+  "description": "AI-Powered Student Skill Tree Simulator — RPG-style gamified learning platform",
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
